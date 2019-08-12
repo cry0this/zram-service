@@ -10,7 +10,7 @@ MEM=$(( $MEM_TOTAL / 100 * $ZRAM_SIZE_PERCENT / $CPUS ))
 
 start() {
   if [ ! "$ZRAM_SIZE_PERCENT" ]; then
-    ZRAM_SIZE_PERCENT=20
+    ZRAM_SIZE_PERCENT=25
   fi
   modprobe zram num_devices=$CPUS
   for (( i=0; i<$CPUS; i++  )); do
