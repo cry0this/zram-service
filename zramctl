@@ -4,24 +4,29 @@ if [ -f /etc/zram.conf ]; then
   source /etc/zram.conf
 fi
 
-CPUS=`nproc`
-MEM_TOTAL=$(( `cat /proc/meminfo|grep MemTotal|awk '{print $2}'` * 1024 ))
-MEM=$(( $MEM_TOTAL / 100 * $ZRAM_SIZE_PERCENT / $CPUS ))
-
 start() {
-  if [ ! "$ZRAM_SIZE_PERCENT" ]; then
+  if [ -z "$ZRAM_SIZE_PERCENT" ]; then
     ZRAM_SIZE_PERCENT=25
   fi
+
+  CPUS=`nproc`
+  MEM_TOTAL=$(( `cat /proc/meminfo|grep MemTotal|awk '{print $2}'` * 1024 ))
+  MEM=$(( $MEM_TOTAL / 100 * $ZRAM_SIZE_PERCENT / $CPUS ))
+
   modprobe zram num_devices=$CPUS
+
   for (( i=0; i<$CPUS; i++  )); do
       echo lz4 > /sys/block/zram$i/comp_algorithm
   done
+
   for (( i=0; i<$CPUS; i++  )); do
       echo $MEM > /sys/block/zram$i/disksize
   done
+
   for (( i=0; i<$CPUS; i++  )); do
-     mkswap /dev/zram$i 
+     mkswap /dev/zram$i
   done
+
   for (( i=0; i<$CPUS; i++  )); do
     swapon /dev/zram$i -p 100
   done
@@ -31,6 +36,7 @@ stop() {
   for (( i=0; i<$CPUS; i++  )); do
     swapoff /dev/zram$i
   done
+  
   rmmod zram
 }
 
